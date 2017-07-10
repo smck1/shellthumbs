@@ -113,10 +113,10 @@ int main(int argc, char *argv[])
 
 	//inmitialise objects for thumbnail extraction
 	HRESULT thumbhr = CoInitialize(nullptr);
-	ISharedBitmap* shared_bitmap = nullptr;
-	WTS_CACHEFLAGS* flags = nullptr;
-	WTS_THUMBNAILID* thumbid = nullptr;
-	HBITMAP hbitmap = NULL;
+	//ISharedBitmap* shared_bitmap = nullptr;
+	WTS_CACHEFLAGS flags;
+	WTS_THUMBNAILID thumbid;
+	//HBITMAP hbitmap = NULL;
 	CLSID bmpCLSid;
 	CLSID jpegCLSid;
 
@@ -146,29 +146,27 @@ int main(int argc, char *argv[])
 				LPWSTR szChildName = nullptr;
 				pChildItem->GetDisplayName(SIGDN_NORMALDISPLAY, &szChildName);
 
-				// reset thumbnail objects
-				shared_bitmap = nullptr;
-				flags = nullptr;
-				hbitmap = NULL;
-				thumbid = nullptr;
-
 				// get the thumbnail
 				thumbhr = cache->GetThumbnail(pChildItem,
 					thumbsize,
 					WTS_FORCEEXTRACTION,   // force extraction
-					&shared_bitmap,
-					flags,
-					thumbid
+					NULL,
+					&flags,
+					&thumbid
 				);
 				if (SUCCEEDED(thumbhr)) {
-					wprintf(L"Obtained %s - ", szChildName);
-					cout << flagnames[int(flags)] << endl;
-					cout << thumbid << endl;
-					//cout << thumbid->rgbKey[0] << endl;
+					wprintf(L"%s - ", szChildName);
+					cout << flagnames[int(flags)] << " - ";
 
-			/*		for (int i = 0; i < 16; i++) {
-						printf("%x", thumbid->rgbKey[i]);
-					}*/
+
+					// Get CacheID (Cache Entry Hash) in ThumbCache Viewer.
+					// Viewer reverses the bytes and ignores the half which is comprised of zeroes.
+					// Output here is set to match the viewer.
+					for (int i = 7; i>-1; i--) {
+						cout << setw(2) << setfill('0') << hex << (int)thumbid.rgbKey[i];
+					}
+					cout << endl;
+					
 				} else {
 					wprintf(L"Failed to obtain %s\n", szChildName);
 				}
