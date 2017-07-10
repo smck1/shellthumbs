@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
 	//inmitialise objects for thumbnail extraction
 	HRESULT thumbhr = CoInitialize(nullptr);
 	ISharedBitmap* shared_bitmap = nullptr;
-	WTS_CACHEFLAGS* flags = nullptr;
+	WTS_CACHEFLAGS flags;
 	HBITMAP hbitmap = NULL;
 	CLSID bmpCLSid;
 	CLSID jpegCLSid;
@@ -153,7 +153,6 @@ int main(int argc, char *argv[])
 				
 				// reset thumbnail objects
 				shared_bitmap = nullptr;
-				flags = nullptr;
 				hbitmap = NULL;
 
 				// get the thumbnail
@@ -161,7 +160,7 @@ int main(int argc, char *argv[])
 					thumbsize,
 					WTS_EXTRACTDONOTCACHE,   // extract but don't clog up the local cache.
 					&shared_bitmap,
-					flags,
+					&flags,
 					nullptr
 				);
 				if (SUCCEEDED(thumbhr)) {
@@ -170,7 +169,7 @@ int main(int argc, char *argv[])
 					// Thumbnail extracted, now get the image content
 					thumbhr = shared_bitmap->GetSharedBitmap(&hbitmap);
 					if (SUCCEEDED(thumbhr)) {
-						// Do somethign with the bitmap content
+						// Do something with the bitmap content
 						Bitmap *image = new Bitmap(hbitmap, NULL);
 
 
@@ -181,7 +180,7 @@ int main(int argc, char *argv[])
 						wstring fnamejpeg = fname + L".jpeg";
 
 						// Save to disk
-						image->Save(fnamebmp.c_str(), &bmpCLSid, NULL);
+						//image->Save(fnamebmp.c_str(), &bmpCLSid, NULL);
 						image->Save(fnamejpeg.c_str(), &jpegCLSid, &encoderParameters);
 
 						delete image;
