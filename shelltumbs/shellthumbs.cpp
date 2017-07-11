@@ -4,7 +4,6 @@
 #pragma comment(lib,"gdiplus.lib")
 
 #include "stdafx.h"
-//#include <GdiplusHelperFunctions.h>
 
 using namespace Gdiplus;
 using namespace std;
@@ -101,7 +100,6 @@ int main(int argc, char *argv[])
 		printf("%X", hr);
 	}
 
-
 	// init com object for thumnailcache
 	IThumbnailCache* cache = nullptr;
 	hr = CoCreateInstance(CLSID_LocalThumbnailCache, nullptr, CLSCTX_INPROC, IID_PPV_ARGS(&cache));
@@ -150,10 +148,7 @@ int main(int argc, char *argv[])
 			{
 				LPWSTR szChildName = nullptr;
 				pChildItem->GetDisplayName(SIGDN_NORMALDISPLAY, &szChildName);
-				
-				// reset thumbnail objects
-				shared_bitmap = nullptr;
-				hbitmap = NULL;
+
 
 				// get the thumbnail
 				thumbhr = cache->GetThumbnail(pChildItem, 
@@ -163,41 +158,44 @@ int main(int argc, char *argv[])
 					&flags,
 					nullptr
 				);
+
 				if (SUCCEEDED(thumbhr)) {
 					wprintf(L"Obtained %s - ", szChildName);
 					cout << flagnames[int(flags)] << endl;
 					// Thumbnail extracted, now get the image content
-					thumbhr = shared_bitmap->GetSharedBitmap(&hbitmap);
+					thumbhr = shared_bitmap->Detach(&hbitmap);
 					if (SUCCEEDED(thumbhr)) {
 						// Do something with the bitmap content
 						Bitmap *image = new Bitmap(hbitmap, NULL);
-
 
 						// File names
 						wstring fname = szChildName;
 						fname = fname + L"_" + to_wstring(thumbsize);
 						wstring fnamebmp = fname + L".bmp";
 						wstring fnamejpeg = fname + L".jpeg";
-
+						
 						// Save to disk
 						//image->Save(fnamebmp.c_str(), &bmpCLSid, NULL);
 						image->Save(fnamejpeg.c_str(), &jpegCLSid, &encoderParameters);
 
 						delete image;
+						DeleteObject(hbitmap); // stop memory leak
 					}
 				}
 				else {
 					wprintf(L"Failed to obtain %s\n", szChildName);
 				}
-				
+				// Free memory
 				CoTaskMemFree(szChildName);
 				pChildItem->Release();
+				
 			}
 		} while (hr != S_FALSE);
 		pEnum->Release();
 	}
 
 	// Clean up
+	CoTaskMemFree(cache);
 	GdiplusShutdown(gdiplusToken);
 	pItem->Release();
 
