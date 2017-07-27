@@ -4,6 +4,9 @@
 #pragma comment(lib,"gdiplus.lib")
 
 #include "stdafx.h"
+#include "thumbcacheByID.h"
+#include <sstream>
+#include <unordered_map>
 //#include <GdiplusHelperFunctions.h>
 
 using namespace Gdiplus;
@@ -55,15 +58,30 @@ string flagnames[3] = {
 	"WTS_CACHED" };
 
 
-int main(int argc, char *argv[])
+int wmain(int argc, wchar_t *argv[])
 {
 
-	if (argc != 3) {
-		cout << "Args:  <folderpath> <thumbsize (e.g 96. 256)>";
+	if (argc != 5) {
+		cout << "Args:  <folderpath> <dbpath> <outpath> <thumbsize (e.g 96. 256)>";
 		return 0;
 	}
-	int thumbsize = atoi(argv[2]);
+
+	wchar_t folderpath[MAX_PATH] = { 0 };
+	wchar_t dbname[MAX_PATH] = { 0 };
+	wchar_t output_path[MAX_PATH] = { 0 };
+	int thumbsize = _wtoi(argv[4]);
 	cout << thumbsize << endl;
+
+
+	int arg_len = wcslen(argv[1]);
+	wmemcpy_s(folderpath, MAX_PATH, argv[1], (arg_len > MAX_PATH ? MAX_PATH : arg_len));
+	arg_len = wcslen(argv[2]);
+	wmemcpy_s(dbname, MAX_PATH, argv[2], (arg_len > MAX_PATH ? MAX_PATH : arg_len));
+	arg_len = wcslen(argv[3]);
+	wmemcpy_s(output_path, MAX_PATH, argv[3], (arg_len > MAX_PATH ? MAX_PATH : arg_len));
+
+
+
 
 
 	int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow);
@@ -74,11 +92,10 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 
-	// convert argument to the correct format
-	wchar_t folderpath[_MAX_PATH] = { 0 };
-	MultiByteToWideChar(0, 0, argv[1], strlen(argv[1]), folderpath, strlen(argv[1]));
+
 	LPWSTR szFolderPath = folderpath;
 	wcout << L"Folder path: " << szFolderPath << endl;
+	//wcout << L"DBfile: " << szFolderPath << endl;
 	cout << "Thumbsize: " << thumbsize << endl;
 
 
@@ -129,6 +146,10 @@ int main(int argc, char *argv[])
 
 
 
+	unordered_map<string, int> idmap;
+	vector<string> failedIds;
+	unordered_map<string, wstring> nameidmap;
+	int i = 0;
 
 	// Iterate through files in the folder
 	IEnumShellItems* pEnum = nullptr;
@@ -155,18 +176,41 @@ int main(int argc, char *argv[])
 					&thumbid
 				);
 				if (SUCCEEDED(thumbhr)) {
-					wprintf(L"%s - ", szChildName);
-					cout << flagnames[int(flags)] << " - ";
+					//wprintf(L"%s - ", szChildName);
+					//cout << flagnames[int(flags)] << " - ";
 
 
 					// Get CacheID (Cache Entry Hash) in ThumbCache Viewer.
 					// Viewer reverses the bytes and ignores the half which is comprised of zeroes.
 					// Output here is set to match the viewer.
-					for (int i = 7; i>-1; i--) {
-						cout << setw(2) << setfill('0') << hex << (int)thumbid.rgbKey[i];
-					}
-					cout << endl;
 					
+					stringstream id;
+					id << "0x";
+					for (int i = 7; i>-1; i--) {
+						//cout << setw(2) << setfill('0') << hex << (int)thumbid.rgbKey[i];
+						id << setw(2) << setfill('0') << hex << (int)thumbid.rgbKey[i];
+					}
+					//cout << endl;
+					//cout << id.str() << endl;
+					idmap[id.str()] = 1;
+					nameidmap[id.str()] = szChildName;
+					//wcout << nameidmap[id.str()] << endl;
+					if (idmap.size() == 5000){
+						i = i + 5000;
+						cout << i << endl;
+						idmap = exportThumbs(dbname, output_path, idmap, nameidmap);
+						cout << "failed to get: " << idmap.size() << endl;
+
+						for (auto kv : idmap) {
+							cout << kv.first << endl;
+							failedIds.push_back(kv.first);   //keep track of failedIDs
+							//vals.push_back(kv.second);
+						}
+						idmap.clear(); //reset the IDs to get from the cache, these one's arent there.
+						nameidmap.clear();
+					}
+				
+
 				} else {
 					wprintf(L"Failed to obtain %s\n", szChildName);
 				}
@@ -181,6 +225,20 @@ int main(int argc, char *argv[])
 	// Clean up
 	GdiplusShutdown(gdiplusToken);
 	pItem->Release();
+
+	cout << "Failed IDs" << endl;
+	for (int x = 0; x < failedIds.size(); x++) {
+		cout << failedIds[x] << endl;
+	}
+
+	//cout << "Name ID Map" << endl;
+	//for (auto kv : nameidmap) {
+	//	//key first, value second
+	//	cout << kv.first;
+	//	wcout << " " << kv.second << endl;
+	//}
+
+
 
 	return 0;
 }

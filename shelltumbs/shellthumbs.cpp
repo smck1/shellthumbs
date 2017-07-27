@@ -5,6 +5,7 @@
 
 #include "stdafx.h"
 
+
 using namespace Gdiplus;
 using namespace std;
 
