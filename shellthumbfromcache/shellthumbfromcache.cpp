@@ -1,5 +1,10 @@
-// shelltumbs.cpp : Defines the entry point for the console application.
-//
+/* shelltumbs.cpp :  An application to create Windows thumbnails for a given directory and output them to a file. Output files retain their original name, even if the file type changes (i.e. from jpeg to bitmap for the 96x96 thumbnails).
+Items are cached and then retrieved directly from the cache such that binary identity is preserved, with image binaries being saved as they normally would.
+As parsing the cache every time an image is thumbnailed is expensive, thumbnails are recovered in batches from the cache itself. This can be controlled by changing the "batchsize" argument.
+Note that if batch size is larger than the number of items in the target directory, nothing will be saved. Make sure that all items are processed by selecting batch size such that:
+no_files_indirectory % batchsize == 0
+
+*/
 
 #pragma comment(lib,"gdiplus.lib")
 
@@ -61,8 +66,8 @@ string flagnames[3] = {
 int wmain(int argc, wchar_t *argv[])
 {
 
-	if (argc != 5) {
-		cout << "Args:  <folderpath> <dbpath> <outpath> <thumbsize (e.g 96. 256)>";
+	if (argc != 6) {
+		cout << "Args:  <folderpath> <dbpath> <outpath> <thumbsize (e.g 96. 256)> <batchsize>";
 		return 0;
 	}
 
@@ -70,7 +75,7 @@ int wmain(int argc, wchar_t *argv[])
 	wchar_t dbname[MAX_PATH] = { 0 };
 	wchar_t output_path[MAX_PATH] = { 0 };
 	int thumbsize = _wtoi(argv[4]);
-	cout << thumbsize << endl;
+	int batchsize = _wtoi(argv[5]);
 
 
 	int arg_len = wcslen(argv[1]);
@@ -97,6 +102,7 @@ int wmain(int argc, wchar_t *argv[])
 	wcout << L"Folder path: " << szFolderPath << endl;
 	//wcout << L"DBfile: " << szFolderPath << endl;
 	cout << "Thumbsize: " << thumbsize << endl;
+	wcout << L"Output path:" << output_path << endl;
 
 
 	// Get the shellitem for the folder specified
@@ -195,15 +201,15 @@ int wmain(int argc, wchar_t *argv[])
 					idmap[id.str()] = 1;
 					nameidmap[id.str()] = szChildName;
 					//wcout << nameidmap[id.str()] << endl;
-					if (idmap.size() == 5000){
-						i = i + 5000;
-						cout << i << endl;
+					if (idmap.size() == batchsize){
+						i = i + batchsize;
+						cout << "Acquired: " << i << endl;
 						idmap = exportThumbs(dbname, output_path, idmap, nameidmap);
 						cout << "failed to get: " << idmap.size() << endl;
 
 						for (auto kv : idmap) {
 							cout << kv.first << endl;
-							failedIds.push_back(kv.first);   //keep track of failedIDs
+							failedIds.push_back(kv.first);   //keep track of names
 							//vals.push_back(kv.second);
 						}
 						idmap.clear(); //reset the IDs to get from the cache, these one's arent there.
@@ -225,11 +231,14 @@ int wmain(int argc, wchar_t *argv[])
 	// Clean up
 	GdiplusShutdown(gdiplusToken);
 	pItem->Release();
-
-	cout << "Failed IDs" << endl;
-	for (int x = 0; x < failedIds.size(); x++) {
-		cout << failedIds[x] << endl;
+	
+	if (failedIds.size() > 0) {
+		cout << "Failed IDs" << endl;
+		for (int x = 0; x < failedIds.size(); x++) {
+			wcout << nameidmap[failedIds[x]] << endl;
+		}
 	}
+
 
 	//cout << "Name ID Map" << endl;
 	//for (auto kv : nameidmap) {
