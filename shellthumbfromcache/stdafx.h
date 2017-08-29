@@ -11,13 +11,11 @@
 #include <gdiplus.h>
 #include <thumbcache.h>
 #include <shobjidl.h>
-#include <shellapi.h> //needed?
-#include <shlguid.h> //needed?
+#include <shlguid.h>
 #include <string>
 #include <iostream>
 #include <iomanip>   
+#include <sstream>
+#include <unordered_map>
+#include "thumbcacheByID.h"
 
-
-
-
-// TODO: reference additional headers your program requires here

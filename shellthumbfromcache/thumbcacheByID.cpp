@@ -1,4 +1,11 @@
 /*
+	Modified code from thumbcache_viewer_cmd (https://github.com/thumbcacheviewer/thumbcacheviewer)
+	to wrap parsing in a function which only extracts thumbnails which are passed in an ID map. 
+	Changes largely involve commenting out print statements and using maps to keep track of which 
+	cache entries (IDs) should be saved to an output directory.
+	
+	Original copyright and license notice below.
+	-------
     thumbcache_viewer_cmd will extract thumbnail images from thumbcache database files.
     Copyright (C) 2011-2016 Eric Kutcher
 
@@ -20,14 +27,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include "stdafx.h"
 #include "thumbcacheByID.h"
-//#include <windows.h>
-//#include <stdio.h>
-//#include <stdlib.h>
-//#include <wchar.h>
-//#include <unordered_map>
-//#include <string>
-//#include <fstream>
-//#include <iostream>
+
 
 // Magic identifiers for various image formats.
 #define FILE_TYPE_BMP	"BM"
@@ -163,43 +163,16 @@ bool scan_memory( HANDLE hFile, unsigned int &offset )
 	return true;
 }
 
+/*
+Parse the thumbcache at path <dbname>. For each entry, check to see if the cache ID is in <ids>, if so, save it to  <output_path> with the associated filename found in <nameidmap>.
+Return any IDs which were not found (or failed to save) in the modified <ids> map.
+*/
 std::unordered_map<std::string, int> exportThumbs(wchar_t* dbname, wchar_t * output_path, std::unordered_map<std::string, int> ids, std::unordered_map<std::string, std::wstring> nameidmap)
 {
 	bool output_html = false;
 	bool output_csv = false;
 	bool skip_blank = false;
 	bool extract_thumbnails = true;
-
-
-	// Ask user for input filename.
-	//wchar_t name[ MAX_PATH ] = { 0 };
-	//wchar_t output_path[ MAX_PATH ] = { 0 };
-
-
-	// We're going to designate the last argument as the database path.
-	//int arg_len = wcslen(dbname);
-	//wmemcpy_s( name, MAX_PATH, dbname, ( arg_len > MAX_PATH ? MAX_PATH : arg_len ) );
-
-	
-
-	//printf("\nOpening ID file\n");
-	///* Initialise the lookup table
-	//*/
-	//std::unordered_map <std::string, int> IDs;
-	//std::ifstream mapinput("ids.txt");
-	//if (!mapinput.is_open()) {
-	//	std::cout << "Couldn't open ID file" << std::endl;
-	//	return 1;
-	//}
-	//for (std::string line; std::getline(mapinput, line); )
-	//{
-	//	//line.erase(line.length());
-	//	//long long longline = std::stoll(line);
-	//	IDs[line] = 1;
-	//	std::cout << line << std::endl;;
-	//}
-
-	//printf( "Attempting to open the thumbcache database.\n" );
 
 	// Attempt to open our database file.
 	HANDLE hFile = CreateFile( dbname, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL );
@@ -914,41 +887,19 @@ std::unordered_map<std::string, int> exportThumbs(wchar_t* dbname, wchar_t * out
 				free( utf8_filename );
 			}
 
+			// Check if the cache entry is in the list of IDs to output.
 			std::string lookupID(s_entry_hash, 18); // Cache IDs are 8 bytes / 16 hex characters + 0x
 			auto search = ids.find(lookupID);
-			//printf(s_entry_hash);
-			//std::cout << lookupID << std::endl;
 			if (search != ids.end()) {
-				// found in ID map
-				//std::cout << "found ID " << lookupID << " " << s_entry_hash << std::endl;
+				// found in ID map, save the file.
 
 
 				// Output the data with the given (UTF-16) filename.
 				//printf("---------------------------------------------\n");
 				if (data_size != 0 && extract_thumbnails)
 				{
-					// Replace any invalid filename characters with an underscore "_".
-					/*wchar_t *filename_ptr = filename;
-					while (filename_ptr != NULL && *filename_ptr != NULL)
-					{
-						if (*filename_ptr == L'\\' ||
-							*filename_ptr == L'/' ||
-							*filename_ptr == L':' ||
-							*filename_ptr == L'*' ||
-							*filename_ptr == L'?' ||
-							*filename_ptr == L'\"' ||
-							*filename_ptr == L'<' ||
-							*filename_ptr == L'>' ||
-							*filename_ptr == L'|')
-						{
-							*filename_ptr = L'_';
-						}
 
-						++filename_ptr;
-					}*/
-					//printf("Writing data to file.\n");
 					// Attempt to save the buffer to a file.
-					
 					std::wstring fname = nameidmap[lookupID];
 					const wchar_t* wft= fname.c_str();
 					HANDLE hFile_save = CreateFile(wft, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -957,7 +908,7 @@ std::unordered_map<std::string, int> exportThumbs(wchar_t* dbname, wchar_t * out
 						WriteFile(hFile_save, buf, data_size, &written, NULL);
 						CloseHandle(hFile_save);
 						//printf("Writing complete.\n");
-						ids.erase(lookupID);
+						ids.erase(lookupID); // Clear this ID, as it's saved now.
 
 					}
 					else

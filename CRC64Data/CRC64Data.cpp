@@ -1,8 +1,11 @@
-// CRC64Data.cpp : Defines the entry point for the console application.
-//
-
 #include "stdafx.h"
 /*
+An application to wrap the CRC64 checksum implementation from  thumbcache_viewer_cmd (https://github.com/thumbcacheviewer/thumbcacheviewer).
+If these checksums are applied to thumbnails extracted from the thumbcache, they may be used to lookup the entry in the cache itself at a later time.
+
+
+Original copyright and license notice below.
+-------
 thumbcache_viewer will extract thumbnail images from thumbcache database files.
 Copyright (C) 2011-2016 Eric Kutcher
 
@@ -177,8 +180,9 @@ int wmain(int argc, wchar_t *argv[]) {
 			}
 
 			free(data_buffer);
-			std::stringstream crc64string;
 
+			// Print checksum
+			std::stringstream crc64string;
 			crc64string << std::hex << data_checksum;
 			std::cout << crc64string.str() << std::endl;			
 		}

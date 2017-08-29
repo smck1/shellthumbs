@@ -1,5 +1,8 @@
-// shelltumbs.cpp : Defines the entry point for the console application.
-//
+/*shelltumbs.cpp : 
+Use the Windows Shell API to extract thumbnails of size <thumbsize> from images in <folderpath>.
+Images are saved to the current directory in the bitmap format (JPEG also available if it's uncommented below).
+Output files do not possess binary identity to those in the thumbcache.
+*/
 
 #pragma comment(lib,"gdiplus.lib")
 
@@ -10,13 +13,6 @@ using namespace Gdiplus;
 using namespace std;
 
 
-//LPWSTR chartowchar(char* inchars) {
-//	std::string schars = std::string(inchars);
-//	std::wstring w1 = std::wstring(schars.begin(), schars.end());
-//	const wchar_t* w2 = w1.c_str();
-//	
-//	
-//}
 
 int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
 {
@@ -49,10 +45,11 @@ int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
 	return-1;//Failure 
 }
 
-string flagnames[3] = {
+string flagnames[4] = {
 		"WTS_DEFAULT",
 		"WTS_LOWQUALITY",
-		"WTS_CACHED" };
+		"WTS_CACHED",
+		"UNKNOWN_FLAG"};
 
 
 int main(int argc, char *argv[])
@@ -62,6 +59,7 @@ int main(int argc, char *argv[])
 		cout << "Args:  <folderpath> <thumbsize (e.g 96. 256)>";
 		return 0;
 	}
+
 	int thumbsize = atoi(argv[2]);
 
 
@@ -125,7 +123,8 @@ int main(int argc, char *argv[])
 	retVal = GetEncoderClsid(L"image/jpeg", &jpegCLSid);
 
 	EncoderParameters encoderParameters;
-	ULONG             quality = 90;  // quality level of jpeg
+	// quality level of jpeg, only used if saving as jpeg.
+	ULONG             quality = 90;  
 	encoderParameters.Count = 1;
 	encoderParameters.Parameter[0].Guid = EncoderQuality;
 	encoderParameters.Parameter[0].Type = EncoderParameterValueTypeLong;
@@ -155,7 +154,7 @@ int main(int argc, char *argv[])
 				thumbhr = cache->GetThumbnail(pChildItem, 
 					thumbsize,
 					WTS_EXTRACTDONOTCACHE,   // extract but don't clog up the local cache.
-					&shared_bitmap,
+					&shared_bitmap,	// Bitmap data in memory
 					&flags,
 					nullptr
 				);
@@ -173,11 +172,11 @@ int main(int argc, char *argv[])
 						wstring fname = szChildName;
 						fname = fname + L"_" + to_wstring(thumbsize);
 						wstring fnamebmp = fname + L".bmp";
-						wstring fnamejpeg = fname + L".jpeg";
+						//wstring fnamejpeg = fname + L".jpeg";
 						
 						// Save to disk
-						//image->Save(fnamebmp.c_str(), &bmpCLSid, NULL);
-						image->Save(fnamejpeg.c_str(), &jpegCLSid, &encoderParameters);
+						image->Save(fnamebmp.c_str(), &bmpCLSid, NULL);
+						//image->Save(fnamejpeg.c_str(), &jpegCLSid, &encoderParameters);
 
 						delete image;
 						DeleteObject(hbitmap); // stop memory leak
