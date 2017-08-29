@@ -3,11 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26430.16
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shellthumbs", "shelltumbs\shelltumbs.vcxproj", "{A6F9B927-F57F-4E12-BB31-FE264215721B}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "thumbnailsFromShell", "shelltumbs\shelltumbs.vcxproj", "{A6F9B927-F57F-4E12-BB31-FE264215721B}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shellthumbfromcache", "shellthumbfromcache\shellthumbfromcache.vcxproj", "{78659EBA-EA1B-48D5-8303-81158568BDFD}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "thumbnailsFromCache", "shellthumbfromcache\shellthumbfromcache.vcxproj", "{78659EBA-EA1B-48D5-8303-81158568BDFD}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CRC64Data", "CRC64Data\CRC64Data.vcxproj", "{F4BABAB4-884D-4F75-9157-A589B575C78E}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "benchmarkLookup", "benchmarkLookup\benchmarkLookup.vcxproj", "{5865C5F7-C98C-4A4F-92B5-5474CFC6342C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -55,6 +57,18 @@ Global
 		{F4BABAB4-884D-4F75-9157-A589B575C78E}.Win_oldvers_8.1|x64.Build.0 = Release|x64
 		{F4BABAB4-884D-4F75-9157-A589B575C78E}.Win_oldvers_8.1|x86.ActiveCfg = Release|Win32
 		{F4BABAB4-884D-4F75-9157-A589B575C78E}.Win_oldvers_8.1|x86.Build.0 = Release|Win32
+		{5865C5F7-C98C-4A4F-92B5-5474CFC6342C}.Debug|x64.ActiveCfg = Debug|x64
+		{5865C5F7-C98C-4A4F-92B5-5474CFC6342C}.Debug|x64.Build.0 = Debug|x64
+		{5865C5F7-C98C-4A4F-92B5-5474CFC6342C}.Debug|x86.ActiveCfg = Debug|Win32
+		{5865C5F7-C98C-4A4F-92B5-5474CFC6342C}.Debug|x86.Build.0 = Debug|Win32
+		{5865C5F7-C98C-4A4F-92B5-5474CFC6342C}.Release|x64.ActiveCfg = Release|x64
+		{5865C5F7-C98C-4A4F-92B5-5474CFC6342C}.Release|x64.Build.0 = Release|x64
+		{5865C5F7-C98C-4A4F-92B5-5474CFC6342C}.Release|x86.ActiveCfg = Release|Win32
+		{5865C5F7-C98C-4A4F-92B5-5474CFC6342C}.Release|x86.Build.0 = Release|Win32
+		{5865C5F7-C98C-4A4F-92B5-5474CFC6342C}.Win_oldvers_8.1|x64.ActiveCfg = Release|x64
+		{5865C5F7-C98C-4A4F-92B5-5474CFC6342C}.Win_oldvers_8.1|x64.Build.0 = Release|x64
+		{5865C5F7-C98C-4A4F-92B5-5474CFC6342C}.Win_oldvers_8.1|x86.ActiveCfg = Release|Win32
+		{5865C5F7-C98C-4A4F-92B5-5474CFC6342C}.Win_oldvers_8.1|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

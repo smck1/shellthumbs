@@ -12,7 +12,6 @@ num_files_in_directory % batchsize == 0
 #include "stdafx.h"
 
 
-
 using namespace Gdiplus;
 using namespace std;
 
@@ -32,6 +31,11 @@ int wmain(int argc, wchar_t *argv[])
 		cout << "Example: C:\\imagedir C:\\Users\\DefaultUser\\AppData\\Local\\Microsoft\\Windows\\Explorer\\thumbcache_256.db C:\\outpath 256 5000" << endl;
 		return 0;
 	}
+
+	clock_t start0, end0;
+	time_t start1, end1;
+	start1 = time(NULL);
+	start0 = clock();
 
 
 	// Parse arguments.
@@ -173,6 +177,9 @@ int wmain(int argc, wchar_t *argv[])
 	// Clean up
 	pItem->Release();
 	
+	end0 = clock();
+	end1 = time(NULL);
+
 	if (failedIds.size() > 0) {
 		cout << "Failed IDs" << endl;
 		// Print failed IDs
@@ -180,6 +187,13 @@ int wmain(int argc, wchar_t *argv[])
 			wcout << nameidmap[failedIds[x]] << endl;
 		}
 	}
+
+
+	double cputime = (double)(end0 - start0) / (CLOCKS_PER_SEC);
+	double walltime = (double)(end1 - start1);
+
+
+	printf("done | cputime %.3fs | walltime %.3fs\n", cputime, walltime);
 
 	return 0;
 }
