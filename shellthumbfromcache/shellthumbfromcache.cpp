@@ -26,7 +26,7 @@ int wmain(int argc, wchar_t *argv[])
 {
 
 	if (argc != 6) {
-		cout << "Args:  <folderpath> <thumbcachedb_path> <outpath> <thumbsize (e.g 96. 256)> <batchsize>";
+		cout << "Args:  <folderpath> <thumbcachedb_path> <outpath> <thumbsize (e.g 96. 256)> <batchsize>" << endl;
 		cout << "Specified thumbcachedb should match the thumbsize" << endl;
 		cout << "Example: C:\\imagedir C:\\Users\\DefaultUser\\AppData\\Local\\Microsoft\\Windows\\Explorer\\thumbcache_256.db C:\\outpath 256 5000" << endl;
 		return 0;

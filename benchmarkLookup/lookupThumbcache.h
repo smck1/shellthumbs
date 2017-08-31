@@ -17,6 +17,6 @@
 
 
 
-std::vector<std::string> lookupThumbs(wchar_t* dbname, std::unordered_map<std::string, int> * sha256hashes, std::unordered_map<std::string, int> * crc64checksums);
+std::vector<std::pair<std::string, std::string>> lookupThumbs(wchar_t* dbname, std::unordered_map<std::string, int> * sha256hashes, std::unordered_map<std::string, int> * crc64checksums);
 
 #endif

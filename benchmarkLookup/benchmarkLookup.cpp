@@ -11,9 +11,8 @@ using namespace std;
 
 int wmain(int argc, wchar_t *argv[])
 {
-
-	if (argc != 6) {
-		cout << "Args: <thumbcachedb_path> <sha256file> <crc64file>";
+	if (argc<3 || argc>4) {
+		cout << "Args: <thumbcachedb_path> <sha256file> <optional: crc64file>" << endl;;
 		return 0;
 	}
 
@@ -21,7 +20,15 @@ int wmain(int argc, wchar_t *argv[])
 	// Parse arguments.
 	wchar_t * dbpath = argv[1];
 	wchar_t * shapath = argv[2];
-	wchar_t * crcpath = argv[3];
+	wchar_t * crcpath;
+
+	if (argc == 4) {
+		crcpath = argv[3];
+	}
+	else {
+		crcpath = NULL;
+	}
+	
 
 
 	// Populate SHA256 map
@@ -37,18 +44,21 @@ int wmain(int argc, wchar_t *argv[])
 		shasigs[line] = 1;
 	}
 
-	// Populate CRC64 map
-	unordered_map <string, int> crchecks;
-	ifstream mapinput(crcpath);
-	if (!mapinput.is_open()) {
-		cout << "Couldn't open " << crcpath << endl;
-		return 1;
-	}
-	for (string line; getline(mapinput, line); )
-	{
-		line.erase(line.length());
 
-		crchecks[line] = 1;
+	// Populate CRC64 map if input provided.
+	unordered_map <string, int> crchecks;
+	if (crcpath != NULL) {
+		ifstream mapinput2(crcpath);
+		if (!mapinput2.is_open()) {
+			cout << "Couldn't open " << crcpath << endl;
+			return 1;
+		}
+		for (string line; getline(mapinput2, line); )
+		{
+			line.erase(line.length());
+
+			crchecks[line] = 1;
+		}
 	}
 
 
@@ -60,18 +70,31 @@ int wmain(int argc, wchar_t *argv[])
 
 
 	// Do call here
-	vector<string> found = lookupThumbs(dbpath, &shasigs, &crchecks);
+	vector<std::pair<std::string, std::string>> found;
+	if (crcpath == NULL){
+		found = lookupThumbs(dbpath, &shasigs, NULL);
+	}
+	else {
+		found = lookupThumbs(dbpath, &shasigs, &crchecks);
+	}
+
+	
 	double cputime = (double)(end0 - start0) / (CLOCKS_PER_SEC);
 	double walltime = difftime(end1, start1);
 
 	cout << "Identified " << found.size() << " items." << endl;
+	cout << "No.     SHA256                                                           CRC64" << endl;
 	for (int i = 0; i < found.size(); i++) {
-		cout << i << ":" << found[i] << endl;
+		cout << i+1 << ":      " << found[i].first << " " << found[i].second << endl;
 	}
 
+	end0 = clock();
+	end1 = time(NULL);
+	cputime = (double)(end0 - start0) / (CLOCKS_PER_SEC);
+	walltime = (double)(end1 - start1);
 
+	//printf("%.3f\n", cputime);
 	printf("done | cputime %.3fs | walltime %.3fs\n", cputime, walltime);
-	cout << walltime << endl;
 
 	return 0;
 }

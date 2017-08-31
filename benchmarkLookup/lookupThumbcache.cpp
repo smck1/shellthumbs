@@ -185,7 +185,7 @@ Process the thumbcache.db at path <dbname>, calcualte the SHA256 checksum of eac
 CRC64 checksums are used as an initial check, determining whether or not thumbnail data should be buffered and hashed. If null, only SHA256 is used.
 Returns a vector of strings with the matching SHA256 hashes.
 */
-std::vector<std::string> lookupThumbs(wchar_t* dbname, std::unordered_map<std::string, int> * sha256hashes, std::unordered_map<std::string, int> * crc64checksums)
+std::vector<std::pair<std::string, std::string>> lookupThumbs(wchar_t* dbname, std::unordered_map<std::string, int> * sha256hashes, std::unordered_map<std::string, int> * crc64checksums)
 {
 
 	bool useCRC = true;
@@ -194,7 +194,7 @@ std::vector<std::string> lookupThumbs(wchar_t* dbname, std::unordered_map<std::s
 	}
 	bool doSHA = true;
 	// returned map of found objects.
-	std::vector<std::string> foundSHA256;
+	std::vector<std::pair<std::string, std::string>> founditems;
 
 	
 	bool skip_blank = false;
@@ -545,22 +545,15 @@ std::vector<std::string> lookupThumbs(wchar_t* dbname, std::unordered_map<std::s
 			}
 
 
-			// Check if the cache entry is in the list of IDs to output.
-
-
+			// Lookup the CRC64
+			std::string lookupCRC64(s_data_checksum, 18); // Cache IDs are 8 bytes / 16 hex characters + 0x
+			lookupCRC64.erase(0, 2); // remove 0x
 			if (useCRC){
 				doSHA = false;
-				std::string lookupCRC64(s_data_checksum, 18); // Cache IDs are 8 bytes / 16 hex characters + 0x
-				std::cout << "Check CRC64: " << lookupCRC64 << "...";
 				auto searchchecksum = crc64checksums->find(lookupCRC64);
-
 				if (searchchecksum != crc64checksums->end()) {
 					// CRC64 was found, verify with SHA256
 					doSHA = true;
-					std::cout << "FOUND" << std::endl;
-				}
-				else {
-					std::cout << "not found" << std::endl;
 				}
 			}
 
@@ -582,12 +575,10 @@ std::vector<std::string> lookupThumbs(wchar_t* dbname, std::unordered_map<std::s
 				}
 
 				std::string shaHash = sha256(buf, data_size);
-				std::cout << "SHA256: " << shaHash << std::endl;
 				auto searchsha256 = sha256hashes->find(shaHash);
 				if (searchsha256 != sha256hashes->end()) {
 					// SHA256 was found, add it to the map
-					foundSHA256.push_back(shaHash);
-					std::cout << "FOUND" << std::endl;
+					founditems.push_back(std::pair<std::string, std::string>(shaHash, lookupCRC64));
 				}
 
 
@@ -647,5 +638,5 @@ std::vector<std::string> lookupThumbs(wchar_t* dbname, std::unordered_map<std::s
 		}
 	}
 
-	return foundSHA256;
+	return founditems;
 }

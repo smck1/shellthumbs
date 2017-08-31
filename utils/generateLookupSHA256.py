@@ -1,8 +1,10 @@
 import os
 import hashlib
+import csv
+import random
 from sys import argv
 from thread_utils import *
-from random import getrandbits
+
 
 """
 Uilitiy to generate a file of SHA256s for later lookup. A number of dummy hashes
@@ -21,26 +23,29 @@ def hashFile(fpath, hashstore):
         fil = open(fpath, 'rb')
         d=fil.read()
         h = hashlib.sha256(d).hexdigest()
-        basename=os.path.basename(fpath)
-        hashstore[basename]=h
+        hashstore[h]=1
 
     except Exception, e:
         print fpath, e
+
 
 def genDummyHash(hashlength, hashstore):
     """
     Generate a dummy hex hash.
     """
-    print binascii.b2a_hex(os.urandom(15))
-
-    return 1
+    flag = True
+    numhexchars = hashlength/4
+    while flag:
+        h=hex(random.getrandbits(hashlength))[2:-1]
+        if len(h) < numhexchars: # check if it needs padded
+            h = h.zfill(numhexchars)
+        if not hashstore.has_key(h): # check if it exists
+            flag = False
+    hashstore[h]=1 # store it
 
 
 # Parse commandline args.
-path = ''
-
-num_threads = 1
-if len(argv) == 4:
+if len(argv) == 5:
     path = argv[1]
     num_threads = int(argv[2])
     num_dummies = int(argv[3])
@@ -53,25 +58,40 @@ else:
 hashes = ThreadSafeDict()
 tpool = ThreadPool(num_threads)
 counter= 0
+dcounter = 0
 
 # Get file list
 flist = []
+print "Walking directory for file list..."
 for folder, subs, files in os.walk(path):
   for filename in files:
     flist.append(os.path.abspath(os.path.join(folder, filename)))
 
-print "Generating dummy hashes.."
+numfiles = len(flist)
+progresscount = numfiles/100
+if progresscount <10:
+    progresscount = numfiles/2
 
+print "Found {} files.".format(numfiles)
+print "Hashing files..."
 with open(outfilename, "wb") as csvfile:
     for im in flist:
         #fname = os.path.basename(im)
         tpool.add_task(hashFile, im, hashes)
         counter +=1
-        if counter % 10000 == 0:
-            print "Added {}".format(counter)
+        if counter % progresscount == 0:
+            print "Processed {}".format(counter)
+
+    print "Generating dummy hashes..."
+    for i in xrange(0, num_dummies):
+        tpool.add_task(genDummyHash, 256, hashes)
+        dcounter +=1
+        if dcounter % 10000 == 0:
+            print "Generated {} dummy hashes.".format(dcounter)
     tpool.wait_completion()
     # Write to CSV
     writer = csv.writer(csvfile, delimiter=";")
-    writer.writerow(["fname", "SHA256"]) #header row
-    for f,h in hashes.iteritems():
-        writer.writerow([f,h])
+    for k,v in hashes.iteritems():
+        writer.writerow([k])
+
+print "Done"
