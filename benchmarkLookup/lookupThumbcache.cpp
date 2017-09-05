@@ -561,7 +561,7 @@ std::vector<std::pair<std::string, std::string>> lookupThumbs(wchar_t* dbname, s
 			// Retrieve the data content.
 			char *buf = NULL;
 			
-			if ( data_size != 0  && doSHA)
+			if ( data_size != 0)
 			{
 				buf = ( char * )malloc( sizeof( char ) * data_size );
 				ReadFile( hFile, buf, data_size, &read, NULL );
@@ -574,11 +574,13 @@ std::vector<std::pair<std::string, std::string>> lookupThumbs(wchar_t* dbname, s
 					break;
 				}
 
-				std::string shaHash = sha256(buf, data_size);
-				auto searchsha256 = sha256hashes->find(shaHash);
-				if (searchsha256 != sha256hashes->end()) {
-					// SHA256 was found, add it to the map
-					founditems.push_back(std::pair<std::string, std::string>(shaHash, lookupCRC64));
+				if (doSHA) {
+					std::string shaHash = sha256(buf, data_size);
+					auto searchsha256 = sha256hashes->find(shaHash);
+					if (searchsha256 != sha256hashes->end()) {
+						// SHA256 was found, add it to the map
+						founditems.push_back(std::pair<std::string, std::string>(shaHash, lookupCRC64));
+					}
 				}
 
 

@@ -2,6 +2,7 @@
 //
 
 #include "stdafx.h"
+#include <chrono>
 #include "lookupThumbcache.h"
 
 
@@ -61,13 +62,8 @@ int wmain(int argc, wchar_t *argv[])
 		}
 	}
 
-
-	// Start timer - Don't benchmark lookup initialisation above as they would be hard coded.
-	clock_t start0, end0;
-	time_t start1, end1;
-	start1 = time(NULL);
-	start0 = clock();
-
+	// Start timer
+	std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 
 	// Do call here
 	vector<std::pair<std::string, std::string>> found;
@@ -79,8 +75,6 @@ int wmain(int argc, wchar_t *argv[])
 	}
 
 	
-	double cputime = (double)(end0 - start0) / (CLOCKS_PER_SEC);
-	double walltime = difftime(end1, start1);
 
 	cout << "Identified " << found.size() << " items." << endl;
 	cout << "No.     SHA256                                                           CRC64" << endl;
@@ -88,14 +82,10 @@ int wmain(int argc, wchar_t *argv[])
 		cout << i+1 << ":      " << found[i].first << " " << found[i].second << endl;
 	}
 
-	end0 = clock();
-	end1 = time(NULL);
-	cputime = (double)(end0 - start0) / (CLOCKS_PER_SEC);
-	walltime = (double)(end1 - start1);
-
-	//printf("%.3f\n", cputime);
-	printf("done | cputime %.3fs | walltime %.3fs\n", cputime, walltime);
-
+	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+	cout << "Time taken: " <<time_span.count() <<"s" << endl;
+	//cout << time_span.count() << endl;
 	return 0;
 }
 
