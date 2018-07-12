@@ -4,7 +4,7 @@ Windows 10 thumbnail extraction using thumbcache
 ## shellthumbs
 
 Use the Windows Shell API to extract thumbnails of size <thumbsize> from images in <folderpath>.
-Images are saved to the current directory in the bitmap format (JPEG also available if it's uncommented below).
+Images are saved to the current directory in the bitmap format (JPEG also available if it's uncommented before building).
 Output files do not possess binary identity to those in the thumbcache.
 
 
@@ -24,7 +24,7 @@ Modified code from thumbcache_viewer_cmd (https://github.com/thumbcacheviewer/th
 
 
 
-## benchmarkLookip
+## benchmarkLookup
 
 An application to call lookupThumbcache in order to benchmark the time it takes to parse the thumbcache for particular items.
 
