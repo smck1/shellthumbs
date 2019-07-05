@@ -17,6 +17,10 @@ As parsing the cache every time an image is thumbnailed is expensive, thumbnails
 Note that if batch size is larger than the number of items in the target directory, nothing will be saved. Make sure that all items are processed by selecting batch size such that:
 num_files_in_directory % batchsize == 0
 
+## thumbnailsCacheOnly
+
+The same as shellthumbsfromcache above, except that thumbnails are only cached and not extracted from the thumbcache afterwards. Caching is forced, so items which are already cached will be cached again.
+
 
 ### ThumbcacheByID
 
